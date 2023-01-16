@@ -3,18 +3,28 @@ import { useState, useEffect, Fragment } from "react";
 import { getSortedCountries } from "@/services/getRequest";
 
 export default function Home() {
-  const [countries, setCountries] = useState<any[]>([]);
+  const [countries, setCountries] = useState<any>([]);
 
   useEffect(() => {
-    (async () => {
-      const sortedCountries = await getSortedCountries();
-      const topTenCountries = [];
-      for (let i = 0; i < 10; ++i) {
-        topTenCountries.push(sortedCountries[i]);
-      }
-      localStorage.setItem("topTenCountries", JSON.stringify(topTenCountries));
-      setCountries(topTenCountries);
-    })();
+    if (localStorage.getItem("topTenCountries") === null) {
+      (async () => {
+        const sortedCountries = await getSortedCountries();
+        const topTenCountries = [];
+        for (let i = 0; i < 10; ++i) {
+          topTenCountries.push(sortedCountries[i]);
+        }
+        localStorage.setItem(
+          "topTenCountries",
+          JSON.stringify(topTenCountries)
+        );
+        setCountries(topTenCountries);
+      })();
+    } else {
+      const localStorageCountries = JSON.parse(
+        localStorage.getItem("topTenCountries") || "{}"
+      );
+      setCountries(localStorageCountries);
+    }
   }, []);
 
   return (
@@ -27,15 +37,25 @@ export default function Home() {
         <ul
           style={{
             display: "grid",
-            gridTemplateRows: "auto auto auto auto auto",
-            gridTemplateColumns: "auto auto auto auto auto",
+            gridTemplateRows: "auto auto",
+            gridTemplateColumns: "auto auto",
+            gap: "1.5rem",
+            listStyle: "none",
           }}
         >
-          {countries.map((country: any, index) => {
+          {countries.map((country: any, index: number) => {
             return (
-              <li key={index}>
-                <p># {index + 1}</p>
-                <p>País: {country.Country}</p>
+              <li
+                key={index}
+                style={{
+                  boxShadow: "0 4px 8px 0 rgba(0,0,0,0.2)",
+                  padding: "0.5rem",
+                  textAlign: "center",
+                }}
+              >
+                <p>
+                  País: {country.Country} # {index + 1}
+                </p>
                 <p>
                   Número de casos ativos:{" "}
                   {country.TotalConfirmed - country.TotalRecovered}
